@@ -1,35 +1,59 @@
-// components/NavBar.js
-import { useState } from 'react';
-import { AppBar, Toolbar, Typography, Button } from '@mui/material';
+// components/Navbar.js
+import { AppBar, Toolbar, Typography, Button, Box } from '@mui/material';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
-import SignInModal from './SignInModal';
+import { auth } from '@/firebase';
+import { useState, useEffect } from 'react';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 
 const Navbar = () => {
-  const [modalOpen, setModalOpen] = useState(false);
   const router = useRouter();
+  const [user, setUser] = useState(null);
 
-  const handleOpenModal = () => {
-    setModalOpen(true);
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+      router.push('/auth');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
   };
 
-  const handleCloseModal = () => {
-    setModalOpen(false);
+  const handleLogoClick = () => {
+    router.push('/'); // Adjust this path to your product page
   };
 
   return (
-    <>
-      <AppBar position="static">
-        <Toolbar>
-          <Typography variant="h6" sx={{ flexGrow: 1 }}>
-            Pantry Manager
-          </Typography>
-          <Button color="inherit" onClick={handleOpenModal}>
-            Sign In
-          </Button>
-        </Toolbar>
-      </AppBar>
-      <SignInModal open={modalOpen} handleClose={handleCloseModal} />
-    </>
+    <AppBar position="static">
+      <Toolbar>
+        <Box display="flex" justifyContent="space-between" width="100%">
+          <Box display="flex" alignItems="center" sx={{ cursor: 'pointer' }} onClick={handleLogoClick}>
+            <Typography variant="h6" component="div">
+              Pantry Manager
+            </Typography>
+          </Box>
+          <Box>
+            {user ? (
+              <Button color="inherit" onClick={handleSignOut}>
+                Sign Out
+              </Button>
+            ) : (
+              <Link href="/auth" passHref>
+                <Button color="inherit">Sign In</Button>
+              </Link>
+            )}
+          </Box>
+        </Box>
+      </Toolbar>
+    </AppBar>
   );
 };
 

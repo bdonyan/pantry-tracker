@@ -1,18 +1,31 @@
 // pages/home.js
-'use client';
-import { Box, Button, Grid, Modal, Stack, TextField, Typography } from "@mui/material";
+import { Box, Button, Grid, Modal, Stack, TextField, Typography, Container } from "@mui/material";
 import { useState, useEffect } from "react";
-import { firestore } from '@/firebase';
+import { firestore, auth } from '@/firebase';
 import { collection, query, getDocs, deleteDoc, doc, getDoc, setDoc } from 'firebase/firestore';
 import { useRouter } from "next/router";
+import { useAuthState } from 'react-firebase-hooks/auth';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 
 export default function Home() {
+  const [user] = useAuthState(auth);
+  const router = useRouter();
   const [inventory, setInventory] = useState([]);
   const [open, setOpen] = useState(false);
   const [itemName, setItemName] = useState('');
+  const [search, setSearch] = useState('');
+
+  useEffect(() => {
+    if (!user) {
+      router.push('/auth');
+    } else {
+      updateInventory();
+    }
+  }, [user]);
 
   const updateInventory = async () => {
-    const snapshot = query(collection(firestore, 'inventory'));
+    const snapshot = query(collection(firestore, `users/${user.uid}/inventory`));
     const docs = await getDocs(snapshot);
     const inventoryList = [];
     docs.forEach(doc => {
@@ -25,7 +38,7 @@ export default function Home() {
   };
 
   const addItem = async (item) => {
-    const docRef = doc(collection(firestore, 'inventory'), item);
+    const docRef = doc(collection(firestore, `users/${user.uid}/inventory`), item);
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
@@ -39,7 +52,7 @@ export default function Home() {
   };
 
   const removeItem = async (item) => {
-    const docRef = doc(collection(firestore, 'inventory'), item);
+    const docRef = doc(collection(firestore, `users/${user.uid}/inventory`), item);
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
@@ -54,110 +67,113 @@ export default function Home() {
     await updateInventory();
   };
 
-  useEffect(() => {
-    updateInventory();
-  }, []);
-
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
+  const filteredInventory = inventory.filter(item =>
+    item.name.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
-    <Box
-      width="100vw"
-      height="100vh"
-      display={"flex"}
-      justifyContent={"center"}
-      alignItems={"center"}
-      flexDirection={"column"}
-    >
-      <Modal open={open} onClose={handleClose}>
-        <Box
-          position="absolute"
-          top="50%"
-          left="50%"
-          width={400}
-          bgcolor="white"
-          border="2px solid #000"
-          boxShadow={24}
-          p={4}
-          display="flex"
-          flexDirection="column"
-          gap={3}
+    <Box display="flex" flexDirection="column" minHeight="100vh">
+      <Navbar />
+      <Box display="flex" flexGrow={1}>
+        <Box width="250px" bgcolor="#f8f9fa" p={2}>
+          <Typography variant="h6">PantryPal</Typography>
+          <Button fullWidth onClick={() => router.push('/pantry')}>Pantry</Button>
+          <Button fullWidth onClick={() => router.push('/inventory')}>Inventory</Button>
+          <Button fullWidth onClick={() => router.push('/recipe')}>Recipe</Button>
+        </Box>
+        <Container
+          component="main"
           sx={{
-            transform: "translate(-50%, -50%)"
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            flexGrow: 1,
+            p: 4,
           }}
         >
-          <Typography variant="h6">Add Item</Typography>
-          <Stack width="100%" direction="row" spacing={2}>
-            <TextField
-              variant='outlined'
-              fullWidth
-              value={itemName}
-              onChange={(e) => {
-                setItemName(e.target.value);
-              }}>
-            </TextField>
-            <Button variant="outlined" onClick={() => {
-              addItem(itemName);
-              setItemName('');
-              handleClose();
-            }}>Add</Button>
-          </Stack>
-        </Box>
-      </Modal>
-      <Box display="flex" justifyContent="center" m={2}>
-        <Button variant="contained" onClick={() => {
-          handleOpen();
-        }}>Add New Item</Button>
-      </Box>
-      <Box border={'1px solid #333'}>
-        <Box
-          width="800px"
-          height="100px"
-          bgcolor={'#ADD8E6'}
-          display={'flex'}
-          justifyContent={'center'}
-          alignItems={'center'}
-        >
-          <Typography
-            variant={'h2'}
-            color={'#333'}
-            textAlign={'center'}
-          >
-            Pantry Items
+          <Typography variant="h4" gutterBottom>
+            Inventory
           </Typography>
-        </Box>
-        <Stack width="800px" height="300px" spacing={2} overflow={'auto'}>
-          {inventory.map(({ name, quantity }) => (
+          <Box display="flex" alignItems="center" width="100%" mb={2}>
+            <TextField
+              placeholder="Search items..."
+              variant="outlined"
+              fullWidth
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            <Button variant="contained" color="primary" onClick={handleOpen} sx={{ ml: 2 }}>
+              Add New Item
+            </Button>
+          </Box>
+          <Modal open={open} onClose={handleClose}>
             <Box
-              key={name}
-              width="100%"
-              minHeight="100px"
-              display={'flex'}
-              alignItems={'center'}
-              bgcolor={'#f0f0f0'}
-              paddingX={5}
+              position="absolute"
+              top="50%"
+              left="50%"
+              width={400}
+              bgcolor="white"
+              border="2px solid #000"
+              boxShadow={24}
+              p={4}
+              display="flex"
+              flexDirection="column"
+              gap={3}
+              sx={{
+                transform: "translate(-50%, -50%)"
+              }}
             >
-              <Grid container spacing={2} alignItems="center">
+              <Typography variant="h6">Add Item</Typography>
+              <Stack width="100%" direction="row" spacing={2}>
+                <TextField
+                  variant='outlined'
+                  fullWidth
+                  value={itemName}
+                  onChange={(e) => {
+                    setItemName(e.target.value);
+                  }}>
+                </TextField>
+                <Button variant="outlined" onClick={() => {
+                  addItem(itemName);
+                  setItemName('');
+                  handleClose();
+                }}>Add</Button>
+              </Stack>
+            </Box>
+          </Modal>
+          <Box width="100%" mt={3}>
+            <Grid container spacing={2} alignItems="center">
+              <Grid item xs={4}>
+                <Typography variant="subtitle1">Product Name</Typography>
+              </Grid>
+              <Grid item xs={4}>
+                <Typography variant="subtitle1">Quantity</Typography>
+              </Grid>
+              <Grid item xs={4}>
+                <Typography variant="subtitle1">Actions</Typography>
+              </Grid>
+            </Grid>
+            {filteredInventory.map(({ name, quantity }) => (
+              <Grid container spacing={2} alignItems="center" key={name} sx={{ mt: 1, p: 1, bgcolor: '#fff', borderRadius: 1 }}>
                 <Grid item xs={4}>
-                  <Typography variant={'h3'} color={'#333'} textAlign={'left'}>
-                    {name.charAt(0).toUpperCase() + name.slice(1)}
-                  </Typography>
+                  <Typography variant="body1">{name.charAt(0).toUpperCase() + name.slice(1)}</Typography>
                 </Grid>
-                <Grid item xs={2}>
-                  <Typography variant={'h3'} color={'#333'} textAlign={'right'}>
-                    {quantity}
-                  </Typography>
+                <Grid item xs={4}>
+                  <Typography variant="body1">{quantity}</Typography>
                 </Grid>
-                <Grid item xs={6} display="flex" justifyContent="flex-end" gap={1}>
-                  <Button variant="contained" onClick={() => addItem(name)}>Add</Button>
-                  <Button variant="contained" onClick={() => removeItem(name)}>Remove</Button>
+                <Grid item xs={4} display="flex" justifyContent="flex-end" gap={1}>
+                  <Button variant="contained" color="primary" onClick={() => addItem(name)}>Add</Button>
+                  <Button variant="contained" color="secondary" onClick={() => removeItem(name)}>Remove</Button>
                 </Grid>
               </Grid>
-            </Box>
-          ))}
-        </Stack>
+            ))}
+          </Box>
+        </Container>
       </Box>
+      <Footer />
     </Box>
   );
 }

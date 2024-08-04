@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Box, Button, TextField, Typography, Tabs, Tab, Alert, Container } from '@mui/material';
 import { useRouter } from 'next/router';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../firebase';
+import { auth, firestore } from '../firebase';
+import { setDoc, doc } from 'firebase/firestore';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
@@ -16,7 +17,15 @@ const AuthPage = () => {
   const handleSignUp = async () => {
     setError('');
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      
+      // Create a document for the user in Firestore
+      await setDoc(doc(firestore, 'users', user.uid), {
+        email: user.email,
+        inventory: {}
+      });
+
       router.push('/home');
     } catch (error) {
       if (error.code === 'auth/email-already-in-use') {
