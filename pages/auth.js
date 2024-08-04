@@ -26,7 +26,7 @@ const AuthPage = () => {
         inventory: {}
       });
 
-      router.push('/home');
+      router.push('/pantry');
     } catch (error) {
       if (error.code === 'auth/email-already-in-use') {
         setError('Email already in use. Please use a different email.');
@@ -41,7 +41,7 @@ const AuthPage = () => {
     setError('');
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      router.push('/home');
+      router.push('/pantry');
     } catch (error) {
       setError('Error signing in. Please check your credentials.');
       console.error('Error signing in:', error);

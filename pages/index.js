@@ -1,38 +1,50 @@
-import { Box, Button, Typography } from '@mui/material';
+import { useAuthState } from 'react-firebase-hooks/auth';
 import { useRouter } from 'next/router';
-import Navbar from '../components/Navbar'; 
-import Footer from '../components/Footer'; 
+import { Box, Button, Typography, Container } from '@mui/material';
+import { auth } from '../firebase';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 
-export default function Home() {
+export default function Index() {
+  const [user] = useAuthState(auth); // Get the current user
   const router = useRouter();
 
   const handleGetStarted = () => {
-    router.push('/auth');
+    if (user) {
+      router.push('/pantry'); // Redirect to home if logged in
+    } else {
+      router.push('/auth'); // Redirect to sign in if not logged in
+    }
   };
 
   return (
-    <Box>
+    <Box
+      display="flex"
+      flexDirection="column"
+      minHeight="100vh"
+    >
       <Navbar />
-      <Box
-        display="flex"
-        flexDirection="column"
-        alignItems="center"
-        justifyContent="center"
-        height="100vh"
-        bgcolor="#f5f5f5"
-        textAlign="center"
-        padding={4}
+      <Container
+        component="main"
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexGrow: 1,
+          p: 4,
+        }}
       >
         <Typography variant="h2" gutterBottom>
           Welcome to Pantry Manager
         </Typography>
-        <Typography variant="h5" gutterBottom>
+        <Typography variant="subtitle1" gutterBottom>
           Efficiently manage your pantry, reduce waste, and never run out of essentials again.
         </Typography>
         <Button variant="contained" color="primary" onClick={handleGetStarted}>
           Get Started
         </Button>
-      </Box>
+      </Container>
       <Footer />
     </Box>
   );

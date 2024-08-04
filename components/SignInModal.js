@@ -13,7 +13,7 @@ const SignInModal = ({ open, handleClose }) => {
   const handleSignIn = async () => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      router.push('/home');
+      router.push('/pantry');
       handleClose();
     } catch (error) {
       console.error('Error signing in:', error);
