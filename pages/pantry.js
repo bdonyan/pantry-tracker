@@ -69,7 +69,7 @@ export default function Pantry() {
 
   useEffect(() => {
     updateInventory();
-  }, [user, router]);
+  }, [user, updateInventory]);
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
