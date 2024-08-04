@@ -1,6 +1,7 @@
-import { useAuthState } from 'react-firebase-hooks/auth';
+// pages/index.js
+import { Box, Button, Typography } from '@mui/material';
 import { useRouter } from 'next/router';
-import { Box, Button, Typography, Container } from '@mui/material';
+import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '../firebase';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -11,7 +12,7 @@ export default function Index() {
 
   const handleGetStarted = () => {
     if (user) {
-      router.push('/pantry'); // Redirect to home if logged in
+      router.push('/home'); // Redirect to home if logged in
     } else {
       router.push('/auth'); // Redirect to sign in if not logged in
     }
@@ -24,16 +25,13 @@ export default function Index() {
       minHeight="100vh"
     >
       <Navbar />
-      <Container
-        component="main"
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexGrow: 1,
-          p: 4,
-        }}
+      <Box
+        display="flex"
+        flexDirection="column"
+        alignItems="center"
+        justifyContent="center"
+        flexGrow={1}
+        p={4}
       >
         <Typography variant="h2" gutterBottom>
           Welcome to Pantry Manager
@@ -44,7 +42,7 @@ export default function Index() {
         <Button variant="contained" color="primary" onClick={handleGetStarted}>
           Get Started
         </Button>
-      </Container>
+      </Box>
       <Footer />
     </Box>
   );

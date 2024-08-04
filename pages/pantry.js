@@ -1,71 +1,75 @@
-// pages/home.js
+// pages/pantry.js
+'use client';
 import { Box, Button, Grid, Modal, Stack, TextField, Typography, Container } from "@mui/material";
 import { useState, useEffect } from "react";
-import { firestore, auth } from '@/firebase';
+import { firestore } from '@/firebase';
 import { collection, query, getDocs, deleteDoc, doc, getDoc, setDoc } from 'firebase/firestore';
 import { useRouter } from "next/router";
 import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth } from '../firebase';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
-export default function Home() {
-  const [user] = useAuthState(auth);
-  const router = useRouter();
+export default function Pantry() {
+  const [user] = useAuthState(auth); // Get the current user
   const [inventory, setInventory] = useState([]);
   const [open, setOpen] = useState(false);
   const [itemName, setItemName] = useState('');
   const [search, setSearch] = useState('');
 
-  useEffect(() => {
-    if (!user) {
-      router.push('/auth');
-    } else {
-      updateInventory();
-    }
-  }, [user]);
-
   const updateInventory = async () => {
-    const snapshot = query(collection(firestore, `users/${user.uid}/inventory`));
-    const docs = await getDocs(snapshot);
-    const inventoryList = [];
-    docs.forEach(doc => {
-      inventoryList.push({
-        name: doc.id,
-        ...doc.data(),
+    if (user) {
+      const userInventoryRef = collection(firestore, 'users', user.uid, 'inventory');
+      const snapshot = query(userInventoryRef);
+      const docs = await getDocs(snapshot);
+      const inventoryList = [];
+      docs.forEach(doc => {
+        inventoryList.push({
+          name: doc.id,
+          ...doc.data(),
+        });
       });
-    });
-    setInventory(inventoryList);
+      setInventory(inventoryList);
+    }
   };
 
   const addItem = async (item) => {
-    const docRef = doc(collection(firestore, `users/${user.uid}/inventory`), item);
-    const docSnap = await getDoc(docRef);
+    if (user) {
+      const docRef = doc(collection(firestore, 'users', user.uid, 'inventory'), item);
+      const docSnap = await getDoc(docRef);
 
-    if (docSnap.exists()) {
-      const { quantity } = docSnap.data();
-      await setDoc(docRef, { quantity: quantity + 1 });
-    } else {
-      await setDoc(docRef, { quantity: 1 });
+      if (docSnap.exists()) {
+        const { quantity } = docSnap.data();
+        await setDoc(docRef, { quantity: quantity + 1 });
+      } else {
+        await setDoc(docRef, { quantity: 1 });
+      }
+
+      await updateInventory();
     }
-
-    await updateInventory();
   };
 
   const removeItem = async (item) => {
-    const docRef = doc(collection(firestore, `users/${user.uid}/inventory`), item);
-    const docSnap = await getDoc(docRef);
+    if (user) {
+      const docRef = doc(collection(firestore, 'users', user.uid, 'inventory'), item);
+      const docSnap = await getDoc(docRef);
 
-    if (docSnap.exists()) {
-      const { quantity } = docSnap.data();
-      if (quantity === 1) {
-        await deleteDoc(docRef);
-      } else {
-        await setDoc(docRef, { quantity: quantity - 1 });
+      if (docSnap.exists()) {
+        const { quantity } = docSnap.data();
+        if (quantity === 1) {
+          await deleteDoc(docRef);
+        } else {
+          await setDoc(docRef, { quantity: quantity - 1 });
+        }
       }
-    }
 
-    await updateInventory();
+      await updateInventory();
+    }
   };
+
+  useEffect(() => {
+    updateInventory();
+  }, [user, updateInventory]);
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
@@ -80,9 +84,9 @@ export default function Home() {
       <Box display="flex" flexGrow={1}>
         <Box width="250px" bgcolor="#f8f9fa" p={2}>
           <Typography variant="h6">PantryPal</Typography>
-          <Button fullWidth onClick={() => router.push('/pantry')}>Pantry</Button>
-          <Button fullWidth onClick={() => router.push('/inventory')}>Inventory</Button>
-          <Button fullWidth onClick={() => router.push('/recipe')}>Recipe</Button>
+          <Button fullWidth>Pantry</Button>
+          <Button fullWidth>Inventory</Button>
+          <Button fullWidth>Recipe</Button>
         </Box>
         <Container
           component="main"

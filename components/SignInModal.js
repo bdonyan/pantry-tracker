@@ -1,55 +1,34 @@
 // components/SignInModal.js
-import { useState } from 'react';
-import { Box, Button, TextField, Typography, Modal, Link } from '@mui/material';
-import { useRouter } from 'next/router';
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../firebase';
+import React from 'react';
+import { Modal, Box, Typography, TextField, Button } from '@mui/material';
 
-const SignInModal = ({ open, handleClose }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const router = useRouter();
-
-  const handleSignIn = async () => {
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      router.push('/pantry');
-      handleClose();
-    } catch (error) {
-      console.error('Error signing in:', error);
-    }
-  };
-
-  const handleSignUpRedirect = () => {
-    router.push('/auth');
-  };
+const SignInModal = ({ open, onClose, onSignIn, onSignUp }) => {
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
 
   return (
-    <Modal open={open} onClose={handleClose}>
+    <Modal open={open} onClose={onClose}>
       <Box
-        display="flex"
-        flexDirection="column"
-        alignItems="center"
-        justifyContent="center"
         position="absolute"
         top="50%"
         left="50%"
-        sx={{
-            transform: "translate(-50%, -50%)"
-        }}
-        bgcolor="#fff"
+        width={400}
+        bgcolor="white"
+        border="2px solid #000"
         boxShadow={24}
         p={4}
-        width="400px"
+        display="flex"
+        flexDirection="column"
+        gap={3}
+        sx={{
+          transform: "translate(-50%, -50%)"
+        }}
       >
-        <Typography variant="h5" gutterBottom>
-          Sign In
-        </Typography>
+        <Typography variant="h6">Sign In</Typography>
         <TextField
           label="Email"
           type="email"
           fullWidth
-          margin="normal"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
@@ -57,18 +36,14 @@ const SignInModal = ({ open, handleClose }) => {
           label="Password"
           type="password"
           fullWidth
-          margin="normal"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
-        <Button variant="contained" color="primary" fullWidth onClick={handleSignIn}>
+        <Button variant="contained" onClick={() => onSignIn(email, password)}>
           Sign In
         </Button>
-        <Typography variant="body2" mt={2}>
-          Don't have an account?{' '}
-          <Link href="#" onClick={handleSignUpRedirect}>
-            Sign Up
-          </Link>
+        <Typography variant="body2">
+          Don&apos;t have an account? <Button onClick={onSignUp}>Sign Up</Button>
         </Typography>
       </Box>
     </Modal>
