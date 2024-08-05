@@ -1,7 +1,6 @@
-// pages/pantry.js
 'use client';
 import { Box, Button, Grid, Modal, Stack, TextField, Typography, Container } from "@mui/material";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { firestore } from '@/firebase';
 import { collection, query, getDocs, deleteDoc, doc, getDoc, setDoc } from 'firebase/firestore';
 import { useRouter } from "next/router";
@@ -12,15 +11,15 @@ import Footer from '../components/Footer';
 
 export default function Pantry() {
   const [user] = useAuthState(auth); // Get the current user
+  const router = useRouter();
   const [inventory, setInventory] = useState([]);
   const [open, setOpen] = useState(false);
   const [itemName, setItemName] = useState('');
   const [search, setSearch] = useState('');
 
-  const updateInventory = async () => {
+  const updateInventory = useCallback(async () => {
     if (user) {
-      const userInventoryRef = collection(firestore, 'users', user.uid, 'inventory');
-      const snapshot = query(userInventoryRef);
+      const snapshot = query(collection(firestore, 'users', user.uid, 'inventory'));
       const docs = await getDocs(snapshot);
       const inventoryList = [];
       docs.forEach(doc => {
@@ -31,7 +30,7 @@ export default function Pantry() {
       });
       setInventory(inventoryList);
     }
-  };
+  }, [user]);
 
   const addItem = async (item) => {
     if (user) {
@@ -69,7 +68,7 @@ export default function Pantry() {
 
   useEffect(() => {
     updateInventory();
-  }, [user, updateInventory]);
+  }, [updateInventory]);
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
@@ -84,9 +83,9 @@ export default function Pantry() {
       <Box display="flex" flexGrow={1}>
         <Box width="250px" bgcolor="#f8f9fa" p={2}>
           <Typography variant="h6">PantryPal</Typography>
-          <Button fullWidth>Pantry</Button>
-          <Button fullWidth>Inventory</Button>
-          <Button fullWidth>Recipe</Button>
+          <Button fullWidth onClick={() => router.push('/pantry')}>Pantry</Button>
+          <Button fullWidth onClick={() => router.push('/inventory')}>Inventory</Button>
+          <Button fullWidth onClick={() => router.push('/recipe')}>Recipe</Button>
         </Box>
         <Container
           component="main"

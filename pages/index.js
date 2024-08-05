@@ -12,7 +12,7 @@ export default function Index() {
 
   const handleGetStarted = () => {
     if (user) {
-      router.push('/home'); // Redirect to home if logged in
+      router.push('/pantry'); // Redirect to pantry if logged in
     } else {
       router.push('/auth'); // Redirect to sign in if not logged in
     }
