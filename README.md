@@ -17,7 +17,7 @@ Pantry Tracker is a web application that helps users manage their pantry invento
 
 ## Time Spent Developing
 
-I spent approximately **20 hours** developing this project, including time for research, setup, and feature implementation.
+I spent approximately **5 hours** developing this project, including time for research, setup, and feature implementation.
 
 ## Deployment
 
