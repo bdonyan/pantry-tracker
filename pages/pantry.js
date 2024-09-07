@@ -16,6 +16,8 @@ export default function Pantry() {
   const [open, setOpen] = useState(false);
   const [itemName, setItemName] = useState('');
   const [search, setSearch] = useState('');
+  const [recipe, setRecipe] = useState(''); // For recipe suggestions
+  const [loadingRecipe, setLoadingRecipe] = useState(false); // Loading state
 
   const updateInventory = useCallback(async () => {
     if (user) {
@@ -63,6 +65,31 @@ export default function Pantry() {
       }
 
       await updateInventory();
+    }
+  };
+
+  // Fetch recipe based on pantry items
+  const getRecipeSuggestion = async () => {
+    setLoadingRecipe(true);
+    try {
+      const response = await fetch('/api/recipe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ pantryItems: inventory.map(item => item.name) }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setRecipe(data.recipe); // Set the recipe suggestion
+      } else {
+        console.error('Failed to fetch recipe');
+      }
+    } catch (error) {
+      console.error('Error fetching recipe:', error);
+    } finally {
+      setLoadingRecipe(false);
     }
   };
 
@@ -174,6 +201,19 @@ export default function Pantry() {
               </Grid>
             ))}
           </Box>
+
+          {/* Button to request recipe suggestion */}
+          <Button variant="contained" color="success" onClick={getRecipeSuggestion} disabled={loadingRecipe} sx={{ mt: 4 }}>
+            {loadingRecipe ? 'Fetching Recipe...' : 'Get Recipe Suggestion'}
+          </Button>
+
+          {/* Display the suggested recipe */}
+          {recipe && (
+            <Box mt={4} p={2} bgcolor="#f0f0f0" borderRadius={2}>
+              <Typography variant="h6">Suggested Recipe:</Typography>
+              <Typography variant="body1">{recipe}</Typography>
+            </Box>
+          )}
         </Container>
       </Box>
       <Footer />
