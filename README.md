@@ -67,10 +67,6 @@ Alternatively, you can follow the instructions below to run the project locally.
 
     Your app should now be running on [http://localhost:3000](http://localhost:3000).
 
-## Contributing
-
-Contributions are welcome! If you'd like to contribute, please fork the repository, make your changes, and submit a pull request.
-
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
